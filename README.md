@@ -7,4 +7,6 @@
 
 <br>
 
-<img src="./docs/intro_teaser.jpg" align="right" width="350"/>
+<img src="./docs/intro_teaser.jpg" align="mid" width="350"/>
+
+<img src="./docs/Qualitative_Result.jpg" align="right" width="350"/>
