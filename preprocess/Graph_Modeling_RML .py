@@ -13,7 +13,7 @@ import shutil
 # ==================================
 #           Functions
 # ==================================
-def get_voxceleb2_datalist(data_path, path):
+def get_datalist(data_path, path):
     with open(path) as f:
         strings = f.readlines()
         a = strings[0].split()
@@ -28,7 +28,8 @@ def get_voxceleb2_datalist(data_path, path):
 # ==================================
 print('Loading data...')
 
-trnlist, trnlb = get_voxceleb2_datalist(data_path='/home/user/Downloads/RML_Dataset', path='./RML.txt')
+# get data list
+trnlist, trnlb = get_datalist(data_path='/home/user/Downloads/RML_Dataset', path='./RML.txt')
 
 partition = {'train': trnlist.flatten()}
 labels = {'train': trnlb.flatten()}
