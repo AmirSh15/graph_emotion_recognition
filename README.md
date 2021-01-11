@@ -7,4 +7,4 @@
 
 <br>
 
-<img src="./docs/intro_teaser.pdf" align="right" width="350"/>
+<img src="./docs/intro_teaser.jpg" align="right" width="350"/>
