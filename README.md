@@ -36,6 +36,14 @@ Note: You can also create the environment I've tested with by importing _environ
 
 The process for RML database is in preprocess directory. The process converts the database into one txt file including graph structure and node attributes.
 
+Note: you can download the processed data from [here](https://drive.google.com/file/d/1KWygtpBUglY8gmzy0HuW6M8OL9u1V5sJ/view?usp=sharing) and put in this directory:
+
+```
+/dataset/
+  Mine_Graph_RML/
+    Mine_Graph_RML.txt
+```
+
 
 <br>
 
