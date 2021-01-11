@@ -38,6 +38,31 @@ The process for RML database is in preprocess directory. The process converts th
 
 <br>
 
+## 3. Training
+
+You can train a simple model with _main_Inception_ or the full model with _main_Inception_learning_adj_pool_
+
+
+```
+usage: main_Inception.py
+
+optional arguments:
+  -h, --help          Show this help message and exit
+  -device             Which gpu to use if any
+  -batch_size         Input batch size for training
+  -iters_per_epoch    Number of iterations per each epoch
+  -epochs             Number of epochs to train
+  -lr                 Learning rate
+  --num_layers        Number of inception layers
+  --num_mlp_layers    Number of layers for MLP in each inception layer
+  --hidden_dim        Number of hidden units for MLP
+  --final_dropout     Dropout for classifier layer
+  --Normalize         Normalizing data
+  --patience          Patience for early stopping
+```
+
+<br>
+
 ## . Reference 
 
 [ArXiv's paper](https://arxiv.org/pdf/2008.02661.pdf)
