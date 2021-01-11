@@ -14,7 +14,7 @@
 In this project, we present the Learnable Graph Inception Network (L-GrIN) that jointly learns to recognize emotion and to identify the underlying graph structure in the dynamic data. Our architecture comprises multiple novel components: a new graph convolution operation, a graph inception layer, learnable adjacency, and a learnable pooling function that yields a graph-level embedding. We evaluate the proposed architecture on five benchmark emotion recognition databases spanning three different modalities (video, audio, motion capture), where each database captures one of the following emotional cues: facial expressions, speech and body gestures.
 
 
-## 1. Dependency installation
+## Dependency installation
 
 The code was successfully built and run with these versions:
 
@@ -32,7 +32,7 @@ Note: You can also create the environment I've tested with by importing _environ
 
 <br>
 
-## 2. Preprocessing Data
+## Preprocessing Data
 
 The process for RML database is in preprocess directory. The process converts the database into one txt file including graph structure and node attributes.
 
@@ -47,7 +47,7 @@ Note: you can download the processed data from [here](https://drive.google.com/f
 
 <br>
 
-## 3. Training
+## Training
 
 You can train a simple model with _main_Inception_ or the full model with _main_Inception_learning_adj_pool_
 
@@ -72,7 +72,7 @@ optional arguments:
 
 <br>
 
-## . Reference 
+## Reference 
 
 [ArXiv's paper](https://arxiv.org/pdf/2008.02661.pdf)
 ```
