@@ -12,10 +12,32 @@
 
 <img src="./docs/intro_teaser.jpg" align="right" width="350"/>
 
+## 1. Dependency installation
+
+The code was successfully built and run with these versions:
+
+```
+pytorch-gpu 1.2.0
+cudnn 7.6.4
+cudatoolkit 10.0.130
+opencv 3.4.2
+scikit-learn 0.21.2
+face_alignment 1.0.1 (for preprocessing)
+
+```
+Note: You can also create the environment I've tested with by importing _environment.yml_ in conda.
+
 
 <br>
 
-## 8. Reference 
+## 2. Preprocessing Data
+
+The process for RML database is in preprocess directory. The process converts the database into one txt file including graph structure and node attributes.
+
+
+<br>
+
+## . Reference 
 
 [ArXiv's paper](https://arxiv.org/pdf/2008.02661.pdf)
 ```
