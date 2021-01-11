@@ -10,6 +10,8 @@
 <img src="./docs/Qualitative_Result.jpg" align="center"/>
 <div align="center"><b>Figure</b>: Qualitative results showing the node (frame) for a graph input that generated the strongest response in our network</div>
 
+
+
 In this project, we present the Learnable Graph Inception Network (L-GrIN) that jointly learns to recognize emotion and to identify the underlying graph structure in the dynamic data. Our architecture comprises multiple novel components: a new graph convolution operation, a graph inception layer, learnable adjacency, and a learnable pooling function that yields a graph-level embedding. We evaluate the proposed architecture on five benchmark emotion recognition databases spanning three different modalities (video, audio, motion capture), where each database captures one of the following emotional cues: facial expressions, speech and body gestures.
 <img src="./docs/intro_teaser.jpg" align="right" width="350"/>
 
