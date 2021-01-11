@@ -8,7 +8,7 @@
 <br>
 
 <img src="./docs/Qualitative_Result.jpg" align="center"/>
-<center>**Figure:** *Qualitative results showing the node (frame) for a graph input that generated the strongest response in our network*</center>
+<center><b>Figure</b>: *Qualitative results showing the node (frame) for a graph input that generated the strongest response in our network*</center>
 
 <img src="./docs/intro_teaser.jpg" align="right" width="350"/>
 
