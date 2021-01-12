@@ -14,25 +14,12 @@ criterion = nn.CrossEntropyLoss()
 def Comp_loss(pred, label, pred_Adj, Adj, Adj_factor, pred_Pool, Pool, Pool_factor):
 
     loss = criterion(pred, label)
-    # loss += Adj_factor*torch.mean((pred_Adj - Adj) ** 2) + torch.mean((pred_Adj - torch.zeros_like(pred_Adj))**2)
     m = nn.Threshold(0, 0)
     pred_Adj = m(pred_Adj)
     loss += Adj_factor * (torch.mean(torch.mul(pred_Adj, Adj)) + torch.mean((pred_Adj - torch.zeros_like(pred_Adj)) ** 2) )
-    loss += Pool_factor * torch.mean((pred_Pool - torch.zeros_like(pred_Pool)) ** 2)  # + nn.MSELoss(pred_Pool, np.zeros_like(pred_Pool))
+    loss += Pool_factor * torch.mean((pred_Pool - torch.zeros_like(pred_Pool)) ** 2)
 
     return loss
-
-def to_sparse(x):
-    """ converts dense tensor x to sparse format """
-    x_typename = torch.typename(x).split('.')[-1]
-    sparse_tensortype = getattr(torch.sparse, x_typename)
-
-    indices = torch.nonzero(x)
-    if len(indices.shape) == 0:  # if all elements are zeros
-        return sparse_tensortype(*x.shape)
-    indices = indices.t()
-    values = x[tuple(indices[i] for i in range(indices.shape[0]))]
-    return sparse_tensortype(indices, values, x.size())
 
 def train(args, model, device, train_graphs, optimizer, epoch, A):
     model.train()
@@ -49,8 +36,10 @@ def train(args, model, device, train_graphs, optimizer, epoch, A):
 
         labels = torch.LongTensor([graph.label for graph in batch_graph]).to(device)
 
-        # .1
+        # setting loss function coefficients
+        Adj_factor = 0.1
         Pool_factor = 0.0001
+
         loss = Comp_loss(output, labels, model.Adj.to(device), A.to(device)
                          , Adj_factor, model.Pool.to(device), torch.ones(size=([len(batch_graph[0].g)])).to(device), Pool_factor)
 
@@ -70,33 +59,6 @@ def train(args, model, device, train_graphs, optimizer, epoch, A):
     print("loss training: %f" % (average_loss))
 
     return average_loss
-
-
-def calculate_eer(y, y_score, num_class):
-    # y denotes groundtruth scores,
-    # y_score denotes the prediction scores.
-    from scipy.optimize import brentq
-    from sklearn.metrics import roc_curve
-    from scipy.interpolate import interp1d
-    from sklearn.preprocessing import label_binarize
-
-
-    y = label_binarize(y, classes=np.arange(num_class))
-    y_score = label_binarize(y_score, classes=np.arange(num_class))
-
-    eer = 0
-    for i in range(num_class):
-        a = y[:, i]
-        fpr, tpr, thresholds = roc_curve(y[:, i], y_score[:, i])
-        eer += brentq(lambda x : 1. - x - interp1d(fpr, tpr)(x), 0., 1.)
-        # thresh = interp1d(fpr, thresholds)(eer)
-    eer /= num_class
-
-    print("EER is %0.2f%%" % (eer * 100))
-
-    return eer
-
-
 
 
 ###pass data to model with minibatch during testing to avoid memory overflow (does not perform backpropagation)
@@ -122,21 +84,11 @@ def test(args, model, device, train_graphs, test_graphs, num_class):
     correct = pred_.eq(labels.view_as(pred_)).sum().cpu().item()
     acc_train = correct / float(len(train_graphs))
 
-    a = labels.data.cpu().numpy()
-    b = np.reshape(pred_.data.cpu().numpy(), newshape=a.shape)
-    print('For Train')
-    eer_train = calculate_eer(a, b, num_class)
-
     output, ind = pass_data_iteratively(model, test_graphs)
     pred = output.max(1, keepdim=True)[1]
     labels = torch.LongTensor([graph.label for graph in test_graphs]).to(device)
     correct = pred.eq(labels.view_as(pred)).sum().cpu().item()
     acc_test = correct / float(len(test_graphs))
-
-    a = labels.data.cpu().numpy()
-    b = np.reshape(pred.data.cpu().numpy(), newshape=a.shape)
-    print('For Test')
-    eer_test = calculate_eer(a, b, num_class)
 
     print("accuracy train: %f test: %f" % (acc_train, acc_test))
 
@@ -160,20 +112,16 @@ def main():
     parser.add_argument('--lr', type=float, default=0.01,
                         help='learning rate (default: 0.01)')
     parser.add_argument('--seed', type=int, default=0,
-                        help='random seed for splitting the dataset into 10 (default: 0)')
+                        help='random seed for splitting the dataset into 5 (default: 0)')
     parser.add_argument('--fold_idx', type=int, default=0,
-                        help='the index of fold in 10-fold validation. Should be less then 10.')
-    parser.add_argument('--num_layers', type=int, default=5,
-                        help='number of layers INCLUDING the input one (default: 5)')
-    parser.add_argument('--num_mlp_layers', type=int, default=2,
-                        help='number of layers for MLP EXCLUDING the input one (default: 2). 1 means linear model.')
-    parser.add_argument('--hidden_dim', type=int, default=136,
-                        help='number of hidden units (default: 64)')
-    parser.add_argument('--final_dropout', type=float, default=0.7,
+                        help='the index of fold in 5-fold validation. Should be less then 5.')
+    parser.add_argument('--num_layers', type=int, default=2,
+                        help='number of layers INCLUDING the input one (default: 2)')
+    parser.add_argument('--final_dropout', type=float, default=0.5,
                         help='final layer dropout (default: 0.5)')
     parser.add_argument('--degree_as_tag', action="store_true",
                         help='let the input node features be the degree of nodes (heuristics for unlabeled graph)')
-    parser.add_argument('--Normalize', type=bool, default=False, choices=[True, False],
+    parser.add_argument('--Normalize', type=bool, default=True, choices=[True, False],
                         help='Normalizing data')
     parser.add_argument('--patience', type=int, default=40,
                         help='Normalizing data')
@@ -192,23 +140,23 @@ def main():
 
 
     ##5-fold cross validation. Conduct an experiment on the fold specified by args.fold_idx.
-    train_graphs, test_graphs, _ = separate_data(graphs, args.seed, args.fold_idx)
+    train_graphs, test_graphs = separate_data(graphs, args.seed, args.fold_idx)
 
     #iniial adjacency matrix
     num_nodes = train_graphs[0].node_features.shape[0]
 
     A = np.zeros([num_nodes, num_nodes])
-    # for i in range(num_nodes):
-    #     for j in range(num_nodes):
-    #         A[i, j] = (i - j) ** 2
-    for i in range(num_nodes-1):
-        A[i, i+1] = 1
-        A[i+1, i] = 1
+    for i in range(num_nodes):
+        for j in range(num_nodes):
+            A[i, j] = (i - j) ** 2
+    # for i in range(num_nodes-1):
+    #     A[i, i+1] = 1
+    #     A[i+1, i] = 1
     A = torch.FloatTensor(A).to(device)
 
-    model = Graph_Inception(args.num_layers, args.num_mlp_layers, train_graphs[0].node_features.shape[1],
-                     args.hidden_dim, num_classes, args.final_dropout,
-                     args.neighbor_pooling_type, device, args.dataset, args.batch_size).to(device)
+    model = Graph_Inception(args.num_layers, train_graphs[0].node_features.shape[1],
+                     num_classes, args.final_dropout,
+                     device, args.dataset, args.batch_size, num_nodes, A).to(device)
 
     Num_Param = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print("Number of Trainable Parameters= %d" % (Num_Param))

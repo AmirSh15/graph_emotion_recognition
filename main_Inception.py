@@ -89,22 +89,18 @@ def main():
                         help='which gpu to use if any (default: 0)')
     parser.add_argument('--batch_size', type=int, default=128,
                         help='input batch size for training (default: 32)')
-    parser.add_argument('--iters_per_epoch', type=int, default=50,
+    parser.add_argument('--iters_per_epoch', type=int, default=90,
                         help='number of iterations per each epoch (default: 50)')
     parser.add_argument('--epochs', type=int, default=1000,
                         help='number of epochs to train (default: 350)')
     parser.add_argument('--lr', type=float, default=0.01,
                         help='learning rate (default: 0.01)')
     parser.add_argument('--seed', type=int, default=0,
-                        help='random seed for splitting the dataset into 10 (default: 0)')
+                        help='random seed for splitting the dataset into 5 (default: 0)')
     parser.add_argument('--fold_idx', type=int, default=0,
-                        help='the index of fold in 10-fold validation. Should be less then 10.')
+                        help='the index of fold in 5-fold validation. Should be less then 5.')
     parser.add_argument('--num_layers', type=int, default=5,
                         help='number of layers INCLUDING the input one (default: 5)')
-    parser.add_argument('--num_mlp_layers', type=int, default=2,
-                        help='number of layers for MLP EXCLUDING the input one (default: 2). 1 means linear model.')
-    parser.add_argument('--hidden_dim', type=int, default=136,
-                        help='number of hidden units (default: 64)')
     parser.add_argument('--final_dropout', type=float, default=0.7,
                         help='final layer dropout (default: 0.5)')
     parser.add_argument('--degree_as_tag', action="store_true",
@@ -129,9 +125,9 @@ def main():
     ##10-fold cross validation. Conduct an experiment on the fold specified by args.fold_idx.
     train_graphs, test_graphs = separate_data(graphs, args.seed, args.fold_idx)
 
-    model = Graph_Inception(args.num_layers, args.num_mlp_layers, train_graphs[0].node_features.shape[1],
-                     args.hidden_dim, num_classes, args.final_dropout,
-                     args.neighbor_pooling_type, device, args.dataset, args.batch_size).to(device)
+    model = Graph_Inception(args.num_layers, train_graphs[0].node_features.shape[1],
+                     num_classes, args.final_dropout,
+                     device, args.dataset, args.batch_size).to(device)
 
     Num_Param = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print("Number of Trainable Parameters= %d" % (Num_Param))
