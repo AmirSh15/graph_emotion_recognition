@@ -98,13 +98,12 @@ class Inception_layer(nn.Module):
 
 
 class Graph_Inception(nn.Module):
-    def __init__(self, num_layers, num_mlp_layers, input_dim, hidden_dim, output_dim, final_dropout,
-                 graph_pooling_type, device, dataset, batch_size):
+    def __init__(self, num_layers, input_dim, output_dim, final_dropout,
+                 device, dataset, batch_size):
         '''
             num_layers: number of layers in the neural networks (INCLUDING the input layer)
             num_mlp_layers: number of layers in mlps (EXCLUDING the input layer)
             input_dim: dimensionality of input features
-            hidden_dim: dimensionality of hidden units at ALL layers
             output_dim: number of classes for prediction
             final_dropout: dropout ratio on the final linear layer
             graph_pooling_type: how to aggregate entire nodes in a graph (mean, average)
@@ -116,27 +115,23 @@ class Graph_Inception(nn.Module):
         self.final_dropout = final_dropout
         self.device = device
         self.num_layers = num_layers
-        self.graph_pooling_type = graph_pooling_type
-        self.eps = nn.Parameter(torch.zeros(self.num_layers-1))
         self.dataset = dataset
         self.batch_size = batch_size
 
         ###List of Inception layers
-        # self.mlps = torch.nn.ModuleList()
-        self.Inception_1 = Inception_layer(input_dim)
-        self.Inception_2 = Inception_layer(328)
-
-        ###List of GCN layers
-
-        ###List of pooling layers
+        self.Inceptions = torch.nn.ModuleList()
+        c = 0
+        for i in range(self.num_layers):
+            self.Inceptions.append(Inception_layer(input_dim + c))
+            c += 192
 
         ###List of batchnorms
-        self.bn0 = nn.BatchNorm1d(136, affine=False)
+        self.bn0 = nn.BatchNorm1d(input_dim, affine=False)
         
 
         #Linear functions that maps the hidden representations to labels
         self.classifier = nn.Sequential(
-                            nn.Linear(520*3, 512),
+                            nn.Linear((c+input_dim)*3, 512),
                             nn.Dropout(p=self.final_dropout),
                             nn.PReLU(512),
                             nn.Linear(512, output_dim))
@@ -179,8 +174,9 @@ class Graph_Inception(nn.Module):
 
         padded_neighbor_list = self.__preprocess_neighbors_maxpool(batch_graph)
 
-        h = self.Inception_1(A, X_concat, padded_neighbor_list)
-        h = self.Inception_2(A, h, padded_neighbor_list)
+        h = X_concat
+        for layer in self.Inceptions:
+            h = layer(A, h, padded_neighbor_list)
 
         max_pool = torch.max(h,dim=1)[0]
         min_pool = torch.min(h,dim=1)[0]
